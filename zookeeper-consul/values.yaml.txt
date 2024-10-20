@@ -1,0 +1,21 @@
+replicaCount: 3
+
+image:
+  repository: zookeeper
+  tag: "3.7.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 2181
+
+persistence:
+  size: 1Gi
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi

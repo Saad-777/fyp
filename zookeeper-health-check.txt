@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zk-health-check
+data:
+  zk_health_check.sh: |
+    #!/bin/sh
+    set -e
+
+    ZK_CLIENT_PORT=${ZK_CLIENT_PORT:-2181}
+    ZK_SERVER_PORT=${ZK_SERVER_PORT:-2888}
+
+    # Check if ZooKeeper is running
+    if ! nc -z localhost $ZK_CLIENT_PORT; then
+        echo '{"status": "error", "message": "ZooKeeper is not responding"}'
+        exit 1
+    fi
+
+    # Get ZooKeeper status
+    STAT=$(echo stat | nc localhost $ZK_CLIENT_PORT 2>/dev/null)
+
+    if echo "$STAT" | grep -q "Mode: leader"; then
+        echo '{"status": "leader"}'
+        exit 0
+    elif echo "$STAT" | grep -q "Mode: follower"; then
+        echo '{"status": "follower"}'
+        exit 0
+    elif echo "$STAT" | grep -q "Mode: standalone"; then
+        echo '{"status": "standalone"}'
+        exit 0
+    else
+        echo '{"status": "unknown"}'
+        exit 1
+    fi
